@@ -4,9 +4,7 @@ import ReactFlow, {
   Background,
   addEdge,
   useNodesState,
-  useEdgesState,
-  applyNodeChanges,
-  applyEdgeChanges
+  useEdgesState
 } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
@@ -22,7 +20,6 @@ const GraphEditor = () => {
   const [contextMenu, setContextMenu] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
 
-  // Buscar nós e relacionamentos do backend
   useEffect(() => {
     axios.get(`${API_URL}/with-relationships`)
       .then((response) => {
@@ -48,7 +45,6 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao buscar nós e relações:", error));
   }, []);
 
-  // Criar um novo nó
   const addNode = () => {
     if (!nodeName.trim()) return;
 
@@ -74,18 +70,16 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao criar nó:", error));
   };
 
-  // Remover um nó
   const removeNode = (nodeId) => {
     axios.delete(`${API_URL}/${nodeId}`)
       .then(() => {
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
         setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-        setContextMenu(null); // Fecha o menu após deletar
+        setContextMenu(null);
       })
       .catch((error) => console.error("Erro ao excluir nó:", error));
   };
 
-  // Criar conexão entre nós
   const onConnect = useCallback((params) => {
     const { source, target } = params;
     axios.post(`${API_URL}/${source}/connect/${target}`)
@@ -95,25 +89,21 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao criar conexão:", error));
   }, []);
 
-  // Deletar nós
-  const onNodesDelete = useCallback((deletedNodes) => {
-    deletedNodes.forEach((node) => {
-      removeNode(node.id);
-    });
-  }, [removeNode]);
-
-  // Deletar conexões
-  const onEdgesDelete = useCallback((deletedEdges) => {
-    deletedEdges.forEach((edge) => {
-      axios.delete(`${API_URL}/${edge.source}/disconnect/${edge.target}`)
-        .then(() => {
-          setEdges((prevEdges) => prevEdges.filter((e) => e.id !== edge.id));
-        })
-        .catch((error) => console.error("Erro ao remover conexão:", error));
-    });
+  const removeEdge = useCallback((edgeId, source, target) => {
+    axios.delete(`${API_URL}/${source}/disconnect/${target}`)
+      .then(() => {
+        setEdges((prevEdges) => prevEdges.filter((e) => e.id !== edgeId));
+        setContextMenu(null);
+      })
+      .catch((error) => console.error("Erro ao remover conexão:", error));
   }, []);
 
-  // Atualizar a posição ao mover um nó
+  const onEdgesDelete = useCallback((deletedEdges) => {
+    deletedEdges.forEach((edge) => {
+      removeEdge(edge.id, edge.source, edge.target);
+    });
+  }, [removeEdge]);
+
   const onNodeDragStop = useCallback((event, node) => {
     axios.put(`${API_URL}/${node.id}`, {
       name: node.data.label,
@@ -123,30 +113,11 @@ const GraphEditor = () => {
     }).catch((error) => console.error("Erro ao atualizar posição:", error));
   }, []);
 
-  // Abrir menu de contexto
-  const onNodeContextMenu = useCallback((event, node) => {
-    event.preventDefault();
-    setContextMenu({
-      mouseX: event.clientX,
-      mouseY: event.clientY,
-      nodeId: node.id,
-      nodeName: node.data.label,
-    });
-  }, []);
-
-  // Fechar menu de contexto
-  const closeContextMenu = () => {
+  const openEditModal = (nodeId, nodeName) => {
+    setEditingNode({ nodeId, nodeName });
     setContextMenu(null);
   };
 
-  // Abrir modal de edição
-  const openEditModal = (nodeId, nodeName) => {
-    console.log("Abrindo modal para edição:", nodeId, nodeName);
-    setEditingNode({ nodeId, nodeName });
-    closeContextMenu(); // Fecha o menu ao abrir o modal
-  };
-
-  // Editar um nó
   const editNode = (nodeId, newName) => {
     axios.put(`${API_URL}/${nodeId}`, {
       name: newName,
@@ -160,16 +131,36 @@ const GraphEditor = () => {
             node.id === nodeId ? { ...node, data: { label: newName } } : node
           )
         );
-        setEditingNode(null); // Fecha o modal após salvar
+        setEditingNode(null);
       })
       .catch((error) => console.error("Erro ao editar nó:", error));
   };
 
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault();
+    setContextMenu({
+      type: "node",
+      mouseX: event.clientX,
+      mouseY: event.clientY,
+      nodeId: node.id,
+      nodeName: node.data.label,
+    });
+  }, []);
+
+  const onEdgeContextMenu = useCallback((event, edge) => {
+    event.preventDefault();
+    setContextMenu({
+      type: "edge",
+      mouseX: event.clientX,
+      mouseY: event.clientY,
+      edgeId: edge.id,
+      source: edge.source,
+      target: edge.target,
+    });
+  }, []);
+
   return (
-    <div 
-      style={{ height: "100vh", padding: "10px" }} 
-      onClick={() => setContextMenu(null)} // Fecha menu ao clicar fora
-    >
+    <div style={{ height: "100vh", padding: "10px" }} onClick={() => setContextMenu(null)}>
       <div style={{ marginBottom: "10px" }}>
         <input
           type="text"
@@ -186,23 +177,33 @@ const GraphEditor = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
         onNodeDragStop={onNodeDragStop}
         onNodeContextMenu={onNodeContextMenu}
+        onEdgeContextMenu={onEdgeContextMenu}
         deleteKeyCode={46}
       >
         <Controls />
         <Background />
       </ReactFlow>
 
-      {contextMenu && (
+      {contextMenu && contextMenu.type === "node" && (
         <ContextMenu
           x={contextMenu.mouseX}
           y={contextMenu.mouseY}
           onDelete={() => removeNode(contextMenu.nodeId)}
           onEdit={() => openEditModal(contextMenu.nodeId, contextMenu.nodeName)}
-          closeMenu={closeContextMenu}
+          closeMenu={() => setContextMenu(null)}
+        />
+      )}
+
+      {contextMenu && contextMenu.type === "edge" && (
+        <ContextMenu
+          x={contextMenu.mouseX}
+          y={contextMenu.mouseY}
+          onDelete={() => removeEdge(contextMenu.edgeId, contextMenu.source, contextMenu.target)}
+          closeMenu={() => setContextMenu(null)}
+          isEdge
         />
       )}
 
