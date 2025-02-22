@@ -1,0 +1,52 @@
+# Diretórios e arquivos do Maven
+/target/
+*.iml
+.mvn/
+!**/src/main/**
+!**/src/test/**
+
+# Diretórios do IntelliJ IDEA
+.idea/
+*.iws
+*.ipr
+*.iml
+
+# Diretórios do Eclipse
+.project
+.classpath
+.settings/
+
+# Diretórios do VSCode
+.vscode/
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Configurações do ambiente
+.env
+*.log
+
+# Dependências do Maven que podem ser baixadas novamente
+.m2/
+
+# Arquivos do Lombok gerados automaticamente
+.lombok.jar
+
+# Arquivos do Spring Boot que não devem ser versionados
+*.jar
+*.war
+*.ear
+
+# Banco de dados embutido
+h2.db
+*.mv.db
+*.h2.db
+
+# Arquivos de cache e logs
+logs/
+*.log
+
+# Arquivos sensíveis
+application.properties
+application.yml

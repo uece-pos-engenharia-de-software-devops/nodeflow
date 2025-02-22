@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474" # Acesso ao Neo4j Browser
+      - "7687:7687" # Porta do Bolt (usado por drivers)
+    environment:
+      - NEO4J_AUTH=neo4j/password # Usuário: neo4j | Senha: password
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_conf:/var/lib/neo4j/conf
+
+volumes:
+  neo4j_data:
+  neo4j_logs:
+  neo4j_conf:
