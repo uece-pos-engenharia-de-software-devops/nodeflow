@@ -1,11 +1,13 @@
 package com.nodeflow.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
 import com.nodeflow.model.NodeEntity;
+import com.nodeflow.model.NodeEntityWithRelationships;
 import com.nodeflow.repository.NodeRepository;
 
 @Service
@@ -55,5 +57,18 @@ public class NodeService {
     public void deleteAllNodes() {
         nodeRepository.deleteAll();
     }
+    
+    public List<NodeEntityWithRelationships> getAllNodesWithRelationships() {
+        List<NodeEntity> nodes = nodeRepository.findAll();
+        List<NodeEntityWithRelationships> nodesWithRelationships = new ArrayList<>();
+
+        for (NodeEntity node : nodes) {
+            List<Long> relatedNodeIds = nodeRepository.findRelatedNodesIds(node.getId());
+            nodesWithRelationships.add(new NodeEntityWithRelationships(node, relatedNodeIds));
+        }
+
+        return nodesWithRelationships;
+    }
+
 
 }

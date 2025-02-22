@@ -18,18 +18,31 @@ const GraphEditor = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [nodeName, setNodeName] = useState("");
 
-  // Buscar nós do backend
+  // Buscar nós e relacionamentos do backend
   useEffect(() => {
-    axios.get(API_URL)
+    axios.get(`${API_URL}/with-relationships`)
       .then((response) => {
         const fetchedNodes = response.data.map((node) => ({
-          id: String(node.id),
-          data: { label: node.name },
+          id: String(node.node.id), // Certifica que o ID é string
+          data: { label: node.node.name },
           position: { x: Math.random() * 400, y: Math.random() * 400 }
         }));
+
         setNodes(fetchedNodes);
+
+        // Criar arestas (edges) a partir dos relacionamentos
+        const fetchedEdges = response.data.flatMap((node) =>
+          node.relatedNodeIds.map((relatedId) => ({
+            id: `edge-${node.node.id}-${relatedId}`,
+            source: String(node.node.id),
+            target: String(relatedId),
+            animated: true
+          }))
+        );
+
+        setEdges(fetchedEdges);
       })
-      .catch((error) => console.error("Erro ao buscar nós:", error));
+      .catch((error) => console.error("Erro ao buscar nós e relações:", error));
   }, []);
 
   // Criar um novo nó

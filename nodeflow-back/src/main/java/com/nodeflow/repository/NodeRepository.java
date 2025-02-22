@@ -37,5 +37,9 @@ public interface NodeRepository extends Neo4jRepository<NodeEntity, Long> {
     // Remover um relacionamento entre dois nós
     @Query("MATCH (a:NodeEntity)-[r:CONNECTED_TO]->(b:NodeEntity) WHERE id(a) = $fromId AND id(b) = $toId DELETE r")
     void removeRelationship(Long fromId, Long toId);
+    
+    @Query("MATCH (n)-[r]->(m) WHERE id(n) = $nodeId RETURN id(m)")
+    List<Long> findRelatedNodesIds(Long nodeId);
+
 }
     

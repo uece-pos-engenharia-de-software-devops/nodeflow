@@ -87,6 +87,12 @@ public class NodeController {
         return ResponseEntity.ok().build();
     }
     
+    @GetMapping("/with-relationships")
+    public List<NodeEntityWithRelationships> getAllNodesWithRelationships() {
+        return nodeService.getAllNodesWithRelationships();
+    }
+
+    
     @PostMapping("/bulk")
     public ResponseEntity<Void> createNodesWithRelationships(@RequestBody List<NodeEntityWithRelationships> nodesWithRelationships) {
         for (NodeEntityWithRelationships nodeWithRel : nodesWithRelationships) {
