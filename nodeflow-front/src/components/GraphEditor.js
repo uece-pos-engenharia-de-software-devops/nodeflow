@@ -10,7 +10,8 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
-import ContextMenu from "./ContextMenu"; // Importa o menu de contexto
+import ContextMenu from "./ContextMenu";
+import EditNodeModal from "./EditNodeModal";
 
 const API_URL = "http://localhost:8080/api/nodes";
 
@@ -18,9 +19,8 @@ const GraphEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [nodeName, setNodeName] = useState("");
-
-  // Estado para armazenar o menu de contexto
   const [contextMenu, setContextMenu] = useState(null);
+  const [editingNode, setEditingNode] = useState(null);
 
   // Buscar nós e relacionamentos do backend
   useEffect(() => {
@@ -75,14 +75,15 @@ const GraphEditor = () => {
   };
 
   // Remover um nó
-  const removeNode = useCallback((nodeId) => {
+  const removeNode = (nodeId) => {
     axios.delete(`${API_URL}/${nodeId}`)
       .then(() => {
         setNodes((prevNodes) => prevNodes.filter((node) => node.id !== nodeId));
         setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+        setContextMenu(null); // Fecha o menu após deletar
       })
       .catch((error) => console.error("Erro ao excluir nó:", error));
-  }, [setNodes, setEdges]);
+  };
 
   // Criar conexão entre nós
   const onConnect = useCallback((params) => {
@@ -122,23 +123,53 @@ const GraphEditor = () => {
     }).catch((error) => console.error("Erro ao atualizar posição:", error));
   }, []);
 
-  // Capturar clique com o botão direito do mouse no nó
+  // Abrir menu de contexto
   const onNodeContextMenu = useCallback((event, node) => {
-    event.preventDefault(); // Evita o menu do navegador
+    event.preventDefault();
     setContextMenu({
-      x: event.clientX,
-      y: event.clientY,
-      nodeId: node.id
+      mouseX: event.clientX,
+      mouseY: event.clientY,
+      nodeId: node.id,
+      nodeName: node.data.label,
     });
   }, []);
 
-  // Fechar menu ao clicar em qualquer lugar
+  // Fechar menu de contexto
   const closeContextMenu = () => {
     setContextMenu(null);
   };
 
+  // Abrir modal de edição
+  const openEditModal = (nodeId, nodeName) => {
+    console.log("Abrindo modal para edição:", nodeId, nodeName);
+    setEditingNode({ nodeId, nodeName });
+    closeContextMenu(); // Fecha o menu ao abrir o modal
+  };
+
+  // Editar um nó
+  const editNode = (nodeId, newName) => {
+    axios.put(`${API_URL}/${nodeId}`, {
+      name: newName,
+      type: "Default",
+      x: nodes.find((n) => n.id === nodeId).position.x,
+      y: nodes.find((n) => n.id === nodeId).position.y,
+    })
+      .then(() => {
+        setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === nodeId ? { ...node, data: { label: newName } } : node
+          )
+        );
+        setEditingNode(null); // Fecha o modal após salvar
+      })
+      .catch((error) => console.error("Erro ao editar nó:", error));
+  };
+
   return (
-    <div style={{ height: "100vh", padding: "10px" }} onClick={closeContextMenu}>
+    <div 
+      style={{ height: "100vh", padding: "10px" }} 
+      onClick={() => setContextMenu(null)} // Fecha menu ao clicar fora
+    >
       <div style={{ marginBottom: "10px" }}>
         <input
           type="text"
@@ -157,8 +188,8 @@ const GraphEditor = () => {
         onConnect={onConnect}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
-        onNodeDragStop={onNodeDragStop} // Atualiza a posição do nó ao soltar o mouse
-        onNodeContextMenu={onNodeContextMenu} // Captura clique com o botão direito
+        onNodeDragStop={onNodeDragStop}
+        onNodeContextMenu={onNodeContextMenu}
         deleteKeyCode={46}
       >
         <Controls />
@@ -167,12 +198,20 @@ const GraphEditor = () => {
 
       {contextMenu && (
         <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onDelete={() => {
-            removeNode(contextMenu.nodeId);
-            setContextMenu(null);
-          }}
+          x={contextMenu.mouseX}
+          y={contextMenu.mouseY}
+          onDelete={() => removeNode(contextMenu.nodeId)}
+          onEdit={() => openEditModal(contextMenu.nodeId, contextMenu.nodeName)}
+          closeMenu={closeContextMenu}
+        />
+      )}
+
+      {editingNode && (
+        <EditNodeModal
+          nodeId={editingNode.nodeId}
+          nodeName={editingNode.nodeName}
+          onClose={() => setEditingNode(null)}
+          onSave={editNode}
         />
       )}
     </div>
