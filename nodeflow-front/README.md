@@ -1,70 +1,121 @@
-# Getting Started with Create React App
+# NodeFlow - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este é o repositório do frontend do **NodeFlow**, um aplicativo para visualização e manipulação de grafos, utilizando **ReactFlow** e **Axios** para interagir com o backend em **Spring Boot**.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## **📌 Tecnologias Utilizadas**
+- **React** 18
+- **ReactFlow** (para edição visual de grafos)
+- **Axios** (para chamadas HTTP)
+- **React Scripts** (para build e execução do projeto)
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## **📌 Requisitos**
+Para rodar este projeto, é necessário ter instalado:
+- **Node.js** v18 ou superior
+- **npm** (gerenciador de pacotes do Node.js)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### **1️⃣ Instalar Dependências**
+```sh
+npm install
+```
 
-### `npm test`
+Caso precise instalar as bibliotecas manualmente, execute:
+```sh
+npm install react react-dom reactflow axios react-scripts
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### **2️⃣ Iniciar o Backend** (Certifique-se de que o backend está rodando)
+```sh
+mvn spring-boot:run
+```
 
-### `npm run build`
+### **3️⃣ Iniciar o Frontend**
+```sh
+npm start
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### **4️⃣ Acessar no Navegador**
+Abra [http://localhost:3000](http://localhost:3000)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## **📂 Estrutura do Projeto**
+```
+nodeflow-front/
+│── public/
+│   ├── index.html
+│   ├── favicon.ico
+│── src/
+│   ├── components/
+│   │   ├── GraphEditor.js  # Editor visual
+│   │   ├── NodeForm.js      # Formulário para adicionar nós
+│   ├── api.js              # API HTTP
+│   ├── App.js              # Componente principal
+│   ├── index.js            # Entrada do React
+│   ├── App.css             # Estilos gerais
+│── package.json
+│── README.md
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## **📌 Funcionalidades**
+✅ Criar nós dinamicamente 🔵  
+✅ Remover nós e conexões ❌  
+✅ Conectar nós com arestas 🔗  
+✅ Persistência de dados via backend ☁️  
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+---
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## **🛠 API Endpoints**
+O frontend se comunica com a API em `http://localhost:8080/api/nodes`. Aqui estão os principais endpoints utilizados:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+| Método | Endpoint | Descrição |
+|--------|---------|------------|
+| GET | `/api/nodes` | Retorna todos os nós |
+| POST | `/api/nodes` | Cria um novo nó |
+| DELETE | `/api/nodes/{id}` | Remove um nó |
+| POST | `/api/nodes/{fromId}/connect/{toId}` | Cria uma conexão entre nós |
+| DELETE | `/api/nodes/{fromId}/disconnect/{toId}` | Remove uma conexão |
 
-## Learn More
+---
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## **📌 Como Personalizar**
+Se quiser modificar o estilo do grafo, edite o arquivo `src/App.css`.
+```css
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+}
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+button {
+  margin-left: 10px;
+}
+```
 
-### Code Splitting
+Se precisar alterar a API, modifique `src/api.js`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+---
 
-### Analyzing the Bundle Size
+## **🚀 Próximos Passos**
+🔹 Melhorar layout e responsividade 📱  
+🔹 Adicionar suporte a múltiplos grafos 🌍  
+🔹 Melhorar o tratamento de erros 🛠️  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+## **👨‍💻 Contribuição**
+1. Faça um fork do repositório
+2. Crie uma branch (`git checkout -b feature-nova`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Faça push da sua branch (`git push origin feature-nova`)
+5. Abra um Pull Request 🚀
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+**🚀 Projeto em desenvolvimento!**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
