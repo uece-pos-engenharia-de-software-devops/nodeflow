@@ -23,14 +23,13 @@ const GraphEditor = () => {
     axios.get(`${API_URL}/with-relationships`)
       .then((response) => {
         const fetchedNodes = response.data.map((node) => ({
-          id: String(node.node.id), // Certifica que o ID é string
+          id: String(node.node.id),
           data: { label: node.node.name },
-          position: { x: Math.random() * 400, y: Math.random() * 400 }
+          position: { x: node.node.x, y: node.node.y } // Usando a posição salva
         }));
 
         setNodes(fetchedNodes);
 
-        // Criar arestas (edges) a partir dos relacionamentos
         const fetchedEdges = response.data.flatMap((node) =>
           node.relatedNodeIds.map((relatedId) => ({
             id: `edge-${node.node.id}-${relatedId}`,
@@ -49,15 +48,21 @@ const GraphEditor = () => {
   const addNode = () => {
     if (!nodeName.trim()) return;
 
-    axios.post(API_URL, { name: nodeName, type: "Default" })
+    const newNode = {
+      name: nodeName,
+      type: "Default",
+      x: Math.random() * 400,
+      y: Math.random() * 400
+    };
+
+    axios.post(API_URL, newNode)
       .then((response) => {
-        const newNode = response.data;
         setNodes((prevNodes) => [
           ...prevNodes,
           {
-            id: String(newNode.id),
-            data: { label: newNode.name },
-            position: { x: Math.random() * 400, y: Math.random() * 400 }
+            id: String(response.data.id),
+            data: { label: response.data.name },
+            position: { x: response.data.x, y: response.data.y }
           }
         ]);
         setNodeName("");
@@ -103,6 +108,16 @@ const GraphEditor = () => {
     });
   }, []);
 
+  // Atualizar a posição ao mover um nó
+  const onNodeDragStop = useCallback((event, node) => {
+    axios.put(`${API_URL}/${node.id}`, {
+      name: node.data.label,
+      type: "Default",
+      x: node.position.x,
+      y: node.position.y
+    }).catch((error) => console.error("Erro ao atualizar posição:", error));
+  }, []);
+
   return (
     <div style={{ height: "100vh", padding: "10px" }}>
       <div style={{ marginBottom: "10px" }}>
@@ -123,6 +138,7 @@ const GraphEditor = () => {
         onConnect={onConnect}
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
+        onNodeDragStop={onNodeDragStop} // Atualiza a posição do nó ao soltar o mouse
         deleteKeyCode={46}
       >
         <Controls />

@@ -52,14 +52,9 @@ public class NodeController {
 
     @PutMapping("/{id}")
     public ResponseEntity<NodeEntity> updateNode(@PathVariable Long id, @RequestBody NodeEntity nodeDetails) {
-        return nodeService.getNodeById(id).map(existingNode -> {
-            existingNode.setName(nodeDetails.getName());
-            existingNode.setType(nodeDetails.getType());
-            NodeEntity updatedNode = nodeService.saveNode(existingNode);
-            return ResponseEntity.ok(updatedNode);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(nodeService.updateNode(id, nodeDetails));
     }
-
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNode(@PathVariable Long id) {
         if (nodeService.getNodeById(id).isPresent()) {
@@ -91,6 +86,8 @@ public class NodeController {
     public List<NodeEntityWithRelationships> getAllNodesWithRelationships() {
         return nodeService.getAllNodesWithRelationships();
     }
+    
+    
 
     
     @PostMapping("/bulk")

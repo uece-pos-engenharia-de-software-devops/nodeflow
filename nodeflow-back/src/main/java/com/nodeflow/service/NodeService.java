@@ -69,6 +69,16 @@ public class NodeService {
 
         return nodesWithRelationships;
     }
+    
+    public NodeEntity updateNode(Long id, NodeEntity nodeDetails) {
+        return nodeRepository.findById(id).map(existingNode -> {
+            existingNode.setName(nodeDetails.getName());
+            existingNode.setType(nodeDetails.getType());
+            existingNode.setX(nodeDetails.getX()); // Atualiza X
+            existingNode.setY(nodeDetails.getY()); // Atualiza Y
+            return nodeRepository.save(existingNode);
+        }).orElseThrow(() -> new RuntimeException("Nó não encontrado"));
+    }
 
 
 }

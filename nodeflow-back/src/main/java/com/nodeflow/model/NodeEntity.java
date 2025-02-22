@@ -18,5 +18,6 @@ public class NodeEntity {
     private Long id;
     private String name;
     private String type;
-    
+    private double x;
+    private double y;
 }
