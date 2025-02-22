@@ -10,6 +10,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import axios from "axios";
+import ContextMenu from "./ContextMenu"; // Importa o menu de contexto
 
 const API_URL = "http://localhost:8080/api/nodes";
 
@@ -18,6 +19,9 @@ const GraphEditor = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [nodeName, setNodeName] = useState("");
 
+  // Estado para armazenar o menu de contexto
+  const [contextMenu, setContextMenu] = useState(null);
+
   // Buscar nós e relacionamentos do backend
   useEffect(() => {
     axios.get(`${API_URL}/with-relationships`)
@@ -25,7 +29,7 @@ const GraphEditor = () => {
         const fetchedNodes = response.data.map((node) => ({
           id: String(node.node.id),
           data: { label: node.node.name },
-          position: { x: node.node.x, y: node.node.y } // Usando a posição salva
+          position: { x: node.node.x, y: node.node.y }
         }));
 
         setNodes(fetchedNodes);
@@ -118,8 +122,23 @@ const GraphEditor = () => {
     }).catch((error) => console.error("Erro ao atualizar posição:", error));
   }, []);
 
+  // Capturar clique com o botão direito do mouse no nó
+  const onNodeContextMenu = useCallback((event, node) => {
+    event.preventDefault(); // Evita o menu do navegador
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      nodeId: node.id
+    });
+  }, []);
+
+  // Fechar menu ao clicar em qualquer lugar
+  const closeContextMenu = () => {
+    setContextMenu(null);
+  };
+
   return (
-    <div style={{ height: "100vh", padding: "10px" }}>
+    <div style={{ height: "100vh", padding: "10px" }} onClick={closeContextMenu}>
       <div style={{ marginBottom: "10px" }}>
         <input
           type="text"
@@ -139,11 +158,23 @@ const GraphEditor = () => {
         onNodesDelete={onNodesDelete}
         onEdgesDelete={onEdgesDelete}
         onNodeDragStop={onNodeDragStop} // Atualiza a posição do nó ao soltar o mouse
+        onNodeContextMenu={onNodeContextMenu} // Captura clique com o botão direito
         deleteKeyCode={46}
       >
         <Controls />
         <Background />
       </ReactFlow>
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onDelete={() => {
+            removeNode(contextMenu.nodeId);
+            setContextMenu(null);
+          }}
+        />
+      )}
     </div>
   );
 };
