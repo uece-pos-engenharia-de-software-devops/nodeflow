@@ -16,9 +16,9 @@ const API_URL = "http://localhost:8080/api/nodes";
 const GraphEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [nodeName, setNodeName] = useState("");
   const [contextMenu, setContextMenu] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
+  const [creatingNode, setCreatingNode] = useState(false);
 
   useEffect(() => {
     axios.get(`${API_URL}/with-relationships`)
@@ -45,11 +45,11 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao buscar nós e relações:", error));
   }, []);
 
-  const addNode = () => {
-    if (!nodeName.trim()) return;
+  const addNode = (name) => {
+    if (!name.trim()) return;
 
     const newNode = {
-      name: nodeName,
+      name,
       type: "Default",
       x: Math.random() * 400,
       y: Math.random() * 400
@@ -65,7 +65,7 @@ const GraphEditor = () => {
             position: { x: response.data.x, y: response.data.y }
           }
         ]);
-        setNodeName("");
+        setCreatingNode(false);
       })
       .catch((error) => console.error("Erro ao criar nó:", error));
   };
@@ -161,15 +161,7 @@ const GraphEditor = () => {
 
   return (
     <div style={{ height: "100vh", padding: "10px" }} onClick={() => setContextMenu(null)}>
-      <div style={{ marginBottom: "10px" }}>
-        <input
-          type="text"
-          placeholder="Nome do Nó"
-          value={nodeName}
-          onChange={(e) => setNodeName(e.target.value)}
-        />
-        <button onClick={addNode}>Adicionar Nó</button>
-      </div>
+      <button onClick={() => setCreatingNode(true)}>Adicionar Nó</button>
 
       <ReactFlow
         nodes={nodes}
@@ -213,6 +205,16 @@ const GraphEditor = () => {
           nodeName={editingNode.nodeName}
           onClose={() => setEditingNode(null)}
           onSave={editNode}
+        />
+      )}
+
+      {creatingNode && (
+        <EditNodeModal
+          nodeId={null}
+          nodeName=""
+          onClose={() => setCreatingNode(false)}
+          onSave={addNode}
+          isNewNode
         />
       )}
     </div>

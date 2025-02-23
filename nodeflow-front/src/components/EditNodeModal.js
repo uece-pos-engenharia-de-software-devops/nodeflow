@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const EditNodeModal = ({ nodeId, nodeName, onClose, onSave }) => {
+const EditNodeModal = ({ nodeId, nodeName, onClose, onSave, isNewNode = false }) => {
   const [newName, setNewName] = useState(nodeName);
 
   return (
@@ -17,14 +17,14 @@ const EditNodeModal = ({ nodeId, nodeName, onClose, onSave }) => {
         zIndex: 1000
       }}
     >
-      <h3>Editar Nó (ID: {nodeId})</h3>
+      <h3>{isNewNode ? "Criar Novo Nó" : `Editar Nó (ID: ${nodeId})`}</h3>
       <input
         type="text"
         value={newName}
         onChange={(e) => setNewName(e.target.value)}
       />
       <br />
-      <button onClick={() => onSave(nodeId, newName)}>Salvar</button>
+      <button onClick={() => onSave(isNewNode ? newName : nodeId, newName)}>Salvar</button>
       <button onClick={onClose} style={{ marginLeft: "10px" }}>Cancelar</button>
     </div>
   );
