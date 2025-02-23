@@ -26,7 +26,14 @@ const GraphEditor = () => {
         const fetchedNodes = response.data.map((node) => ({
           id: String(node.node.id),
           data: { label: node.node.name },
-          position: { x: node.node.x, y: node.node.y }
+          position: { x: node.node.x, y: node.node.y },
+          style: {
+            backgroundColor: "#1E1E1E",
+            color: "#FFFFFF",
+            border: "2px solid #4CAF50",
+            borderRadius: "8px",
+            padding: "10px",
+          },
         }));
 
         setNodes(fetchedNodes);
@@ -36,7 +43,8 @@ const GraphEditor = () => {
             id: `edge-${node.node.id}-${relatedId}`,
             source: String(node.node.id),
             target: String(relatedId),
-            animated: true
+            animated: true,
+            style: { stroke: "#4CAF50", strokeWidth: 2 },
           }))
         );
 
@@ -52,7 +60,7 @@ const GraphEditor = () => {
       name,
       type: "Default",
       x: Math.random() * 400,
-      y: Math.random() * 400
+      y: Math.random() * 400,
     };
 
     axios.post(API_URL, newNode)
@@ -62,8 +70,15 @@ const GraphEditor = () => {
           {
             id: String(response.data.id),
             data: { label: response.data.name },
-            position: { x: response.data.x, y: response.data.y }
-          }
+            position: { x: response.data.x, y: response.data.y },
+            style: {
+              backgroundColor: "#1E1E1E",
+              color: "#FFFFFF",
+              border: "2px solid #4CAF50",
+              borderRadius: "8px",
+              padding: "10px",
+            },
+          },
         ]);
         setCreatingNode(false);
       })
@@ -80,15 +95,6 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao excluir nó:", error));
   };
 
-  const onConnect = useCallback((params) => {
-    const { source, target } = params;
-    axios.post(`${API_URL}/${source}/connect/${target}`)
-      .then(() => {
-        setEdges((prevEdges) => addEdge(params, prevEdges));
-      })
-      .catch((error) => console.error("Erro ao criar conexão:", error));
-  }, []);
-
   const removeEdge = useCallback((edgeId, source, target) => {
     axios.delete(`${API_URL}/${source}/disconnect/${target}`)
       .then(() => {
@@ -96,21 +102,6 @@ const GraphEditor = () => {
         setContextMenu(null);
       })
       .catch((error) => console.error("Erro ao remover conexão:", error));
-  }, []);
-
-  const onEdgesDelete = useCallback((deletedEdges) => {
-    deletedEdges.forEach((edge) => {
-      removeEdge(edge.id, edge.source, edge.target);
-    });
-  }, [removeEdge]);
-
-  const onNodeDragStop = useCallback((event, node) => {
-    axios.put(`${API_URL}/${node.id}`, {
-      name: node.data.label,
-      type: "Default",
-      x: node.position.x,
-      y: node.position.y
-    }).catch((error) => console.error("Erro ao atualizar posição:", error));
   }, []);
 
   const openEditModal = (nodeId, nodeName) => {
@@ -136,6 +127,24 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao editar nó:", error));
   };
 
+  const onNodeDragStop = useCallback((event, node) => {
+    axios.put(`${API_URL}/${node.id}`, {
+      name: node.data.label,
+      type: "Default",
+      x: node.position.x,
+      y: node.position.y
+    }).catch((error) => console.error("Erro ao atualizar posição:", error));
+  }, []);
+
+  const onConnect = useCallback((params) => {
+    const { source, target } = params;
+    axios.post(`${API_URL}/${source}/connect/${target}`)
+      .then(() => {
+        setEdges((prevEdges) => addEdge(params, prevEdges));
+      })
+      .catch((error) => console.error("Erro ao criar conexão:", error));
+  }, []);
+
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault();
     setContextMenu({
@@ -160,8 +169,21 @@ const GraphEditor = () => {
   }, []);
 
   return (
-    <div style={{ height: "100vh", padding: "10px" }} onClick={() => setContextMenu(null)}>
-      <button onClick={() => setCreatingNode(true)}>Adicionar Nó</button>
+    <div style={{ height: "100vh", backgroundColor: "#121212", padding: "10px" }} onClick={() => setContextMenu(null)}>
+      <button
+        onClick={() => setCreatingNode(true)}
+        style={{
+          backgroundColor: "#4CAF50",
+          color: "white",
+          border: "none",
+          padding: "10px 20px",
+          fontSize: "16px",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Adicionar Nó
+      </button>
 
       <ReactFlow
         nodes={nodes}
@@ -169,14 +191,14 @@ const GraphEditor = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onEdgesDelete={onEdgesDelete}
         onNodeDragStop={onNodeDragStop}
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         deleteKeyCode={46}
+        fitView
       >
-        <Controls />
-        <Background />
+        <Controls style={{ background: "#1E1E1E", color: "#FFF" }} />
+        <Background color="#333" gap={16} />
       </ReactFlow>
 
       {contextMenu && contextMenu.type === "node" && (
