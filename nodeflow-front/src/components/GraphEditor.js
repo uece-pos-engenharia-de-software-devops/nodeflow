@@ -19,21 +19,15 @@ const GraphEditor = () => {
   const [contextMenu, setContextMenu] = useState(null);
   const [editingNode, setEditingNode] = useState(null);
   const [creatingNode, setCreatingNode] = useState(false);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
 
   useEffect(() => {
     axios.get(`${API_URL}/with-relationships`)
       .then((response) => {
         const fetchedNodes = response.data.map((node) => ({
           id: String(node.node.id),
-          data: { label: node.node.name },
-          position: { x: node.node.x, y: node.node.y },
-          style: {
-            backgroundColor: "#1E1E1E",
-            color: "#FFFFFF",
-            border: "2px solid #4CAF50",
-            borderRadius: "8px",
-            padding: "10px",
-          },
+          data: { label: node.node.name, type: node.node.type },
+          position: { x: node.node.x, y: node.node.y }
         }));
 
         setNodes(fetchedNodes);
@@ -43,8 +37,7 @@ const GraphEditor = () => {
             id: `edge-${node.node.id}-${relatedId}`,
             source: String(node.node.id),
             target: String(relatedId),
-            animated: true,
-            style: { stroke: "#4CAF50", strokeWidth: 2 },
+            animated: true
           }))
         );
 
@@ -53,14 +46,19 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao buscar nós e relações:", error));
   }, []);
 
-  const addNode = (name) => {
-    if (!name.trim()) return;
+  const addNode = (name, type) => {
+    if (!name || !name.trim()) {
+      console.error("Erro: Nome do nó está vazio ou inválido.");
+      return;
+    }
+
+    const nodeType = type || "Default";
 
     const newNode = {
-      name,
-      type: "Default",
+      name: name.trim(),
+      type: nodeType,
       x: Math.random() * 400,
-      y: Math.random() * 400,
+      y: Math.random() * 400
     };
 
     axios.post(API_URL, newNode)
@@ -69,20 +67,31 @@ const GraphEditor = () => {
           ...prevNodes,
           {
             id: String(response.data.id),
-            data: { label: response.data.name },
-            position: { x: response.data.x, y: response.data.y },
-            style: {
-              backgroundColor: "#1E1E1E",
-              color: "#FFFFFF",
-              border: "2px solid #4CAF50",
-              borderRadius: "8px",
-              padding: "10px",
-            },
-          },
+            data: { label: response.data.name, type: response.data.type },
+            position: { x: response.data.x, y: response.data.y }
+          }
         ]);
         setCreatingNode(false);
       })
       .catch((error) => console.error("Erro ao criar nó:", error));
+  };
+
+  const editNode = (nodeId, newName, newType) => {
+    axios.put(`${API_URL}/${nodeId}`, {
+      name: newName,
+      type: newType,
+      x: nodes.find((n) => n.id === nodeId).position.x,
+      y: nodes.find((n) => n.id === nodeId).position.y
+    })
+      .then(() => {
+        setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === nodeId ? { ...node, data: { label: newName, type: newType } } : node
+          )
+        );
+        setEditingNode(null);
+      })
+      .catch((error) => console.error("Erro ao editar nó:", error));
   };
 
   const removeNode = (nodeId) => {
@@ -104,47 +113,6 @@ const GraphEditor = () => {
       .catch((error) => console.error("Erro ao remover conexão:", error));
   }, []);
 
-  const openEditModal = (nodeId, nodeName) => {
-    setEditingNode({ nodeId, nodeName });
-    setContextMenu(null);
-  };
-
-  const editNode = (nodeId, newName) => {
-    axios.put(`${API_URL}/${nodeId}`, {
-      name: newName,
-      type: "Default",
-      x: nodes.find((n) => n.id === nodeId).position.x,
-      y: nodes.find((n) => n.id === nodeId).position.y,
-    })
-      .then(() => {
-        setNodes((prevNodes) =>
-          prevNodes.map((node) =>
-            node.id === nodeId ? { ...node, data: { label: newName } } : node
-          )
-        );
-        setEditingNode(null);
-      })
-      .catch((error) => console.error("Erro ao editar nó:", error));
-  };
-
-  const onNodeDragStop = useCallback((event, node) => {
-    axios.put(`${API_URL}/${node.id}`, {
-      name: node.data.label,
-      type: "Default",
-      x: node.position.x,
-      y: node.position.y
-    }).catch((error) => console.error("Erro ao atualizar posição:", error));
-  }, []);
-
-  const onConnect = useCallback((params) => {
-    const { source, target } = params;
-    axios.post(`${API_URL}/${source}/connect/${target}`)
-      .then(() => {
-        setEdges((prevEdges) => addEdge(params, prevEdges));
-      })
-      .catch((error) => console.error("Erro ao criar conexão:", error));
-  }, []);
-
   const onNodeContextMenu = useCallback((event, node) => {
     event.preventDefault();
     setContextMenu({
@@ -153,6 +121,7 @@ const GraphEditor = () => {
       mouseY: event.clientY,
       nodeId: node.id,
       nodeName: node.data.label,
+      nodeType: node.data.type
     });
   }, []);
 
@@ -164,25 +133,26 @@ const GraphEditor = () => {
       mouseY: event.clientY,
       edgeId: edge.id,
       source: edge.source,
-      target: edge.target,
+      target: edge.target
     });
   }, []);
 
+  const toggleTheme = () => {
+    const newTheme = theme === "dark" ? "white" : "dark";
+    setTheme(newTheme);
+    localStorage.setItem("theme", newTheme);
+  };
+
   return (
-    <div style={{ height: "100vh", backgroundColor: "#121212", padding: "10px" }} onClick={() => setContextMenu(null)}>
-      <button
-        onClick={() => setCreatingNode(true)}
-        style={{
-          backgroundColor: "#4CAF50",
-          color: "white",
-          border: "none",
-          padding: "10px 20px",
-          fontSize: "16px",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
-        Adicionar Nó
+    <div style={{ 
+      height: "100vh", 
+      backgroundColor: theme === "dark" ? "#121212" : "#FFFFFF",
+      color: theme === "dark" ? "#FFFFFF" : "#000000",
+      padding: "10px"
+    }}>
+      <button onClick={() => setCreatingNode(true)}>Adicionar Nó</button>
+      <button onClick={toggleTheme} style={{ marginLeft: "10px" }}>
+        Alternar para {theme === "dark" ? "White" : "Dark"} Mode
       </button>
 
       <ReactFlow
@@ -190,15 +160,16 @@ const GraphEditor = () => {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeDragStop={onNodeDragStop}
+        onConnect={(params) => axios.post(`${API_URL}/${params.source}/connect/${params.target}`)
+          .then(() => setEdges((prevEdges) => addEdge(params, prevEdges)))
+          .catch((error) => console.error("Erro ao criar conexão:", error))
+        }
         onNodeContextMenu={onNodeContextMenu}
         onEdgeContextMenu={onEdgeContextMenu}
         deleteKeyCode={46}
-        fitView
       >
-        <Controls style={{ background: "#1E1E1E", color: "#FFF" }} />
-        <Background color="#333" gap={16} />
+        <Controls />
+        <Background color={theme === "dark" ? "#333" : "#E0E0E0"} gap={16} />
       </ReactFlow>
 
       {contextMenu && contextMenu.type === "node" && (
@@ -206,7 +177,11 @@ const GraphEditor = () => {
           x={contextMenu.mouseX}
           y={contextMenu.mouseY}
           onDelete={() => removeNode(contextMenu.nodeId)}
-          onEdit={() => openEditModal(contextMenu.nodeId, contextMenu.nodeName)}
+          onEdit={() => setEditingNode({
+            nodeId: contextMenu.nodeId, 
+            nodeName: contextMenu.nodeName, 
+            nodeType: contextMenu.nodeType 
+          })}
           closeMenu={() => setContextMenu(null)}
         />
       )}
@@ -225,8 +200,10 @@ const GraphEditor = () => {
         <EditNodeModal
           nodeId={editingNode.nodeId}
           nodeName={editingNode.nodeName}
+          nodeType={editingNode.nodeType}
           onClose={() => setEditingNode(null)}
           onSave={editNode}
+          theme={theme}
         />
       )}
 
@@ -234,9 +211,11 @@ const GraphEditor = () => {
         <EditNodeModal
           nodeId={null}
           nodeName=""
+          nodeType="Default"
           onClose={() => setCreatingNode(false)}
           onSave={addNode}
           isNewNode
+          theme={theme}
         />
       )}
     </div>

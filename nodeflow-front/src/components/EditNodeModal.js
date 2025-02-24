@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 
-const EditNodeModal = ({ nodeId, nodeName, onClose, onSave, isNewNode = false }) => {
-  const [newName, setNewName] = useState(nodeName);
+const NODE_TYPES = ["Default", "TypeA", "TypeB", "TypeC"];
+
+const EditNodeModal = ({ nodeId, nodeName, nodeType, onClose, onSave, isNewNode = false, theme }) => {
+  const [newName, setNewName] = useState(nodeName || "");
+  const [selectedType, setSelectedType] = useState(nodeType || "Default");
 
   return (
     <div
@@ -10,68 +13,51 @@ const EditNodeModal = ({ nodeId, nodeName, onClose, onSave, isNewNode = false })
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        background: "white",
+        background: theme === "dark" ? "#1E1E1E" : "white",
         padding: "20px",
-        borderRadius: "12px",
-        boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
+        borderRadius: "10px",
+        boxShadow: "0px 4px 6px rgba(0,0,0,0.2)",
         zIndex: 1000,
-        minWidth: "300px",
-        textAlign: "center"
+        color: theme === "dark" ? "#FFFFFF" : "#000000",
+        minWidth: "300px"
       }}
     >
-      <h3 style={{ marginBottom: "10px", fontWeight: "bold", color: "#333" }}>
-        {isNewNode ? "Criar Novo Nó" : `Editar Nó (ID: ${nodeId})`}
-      </h3>
+      <h3>{isNewNode ? "Criar Novo Nó" : `Editar Nó (ID: ${nodeId})`}</h3>
       <input
         type="text"
         value={newName}
         onChange={(e) => setNewName(e.target.value)}
         style={{
           width: "100%",
-          padding: "10px",
-          borderRadius: "8px",
-          border: "1px solid #ccc",
-          fontSize: "16px"
+          padding: "8px",
+          marginBottom: "10px",
+          borderRadius: "5px",
+          border: "1px solid #4CAF50",
+          backgroundColor: theme === "dark" ? "#121212" : "#F0F0F0",
+          color: theme === "dark" ? "#FFFFFF" : "#000000"
         }}
       />
-      <br />
-      <button 
-        onClick={() => onSave(isNewNode ? newName : nodeId, newName)}
+      
+      <label>Tipo:</label>
+      <select
+        value={selectedType}
+        onChange={(e) => setSelectedType(e.target.value)}
         style={{
-          marginTop: "15px",
-          background: "#28a745",
-          color: "white",
-          padding: "10px 16px",
-          fontSize: "16px",
-          borderRadius: "8px",
-          border: "none",
-          cursor: "pointer",
-          transition: "0.3s"
+          width: "100%",
+          padding: "8px",
+          marginBottom: "10px",
+          borderRadius: "5px",
+          backgroundColor: theme === "dark" ? "#121212" : "#F0F0F0",
+          color: theme === "dark" ? "#FFFFFF" : "#000000"
         }}
-        onMouseEnter={(e) => e.target.style.background = "#218838"}
-        onMouseLeave={(e) => e.target.style.background = "#28a745"}
       >
-        ✅ Salvar
-      </button>
-      <button 
-        onClick={onClose}
-        style={{
-          marginTop: "15px",
-          marginLeft: "10px",
-          background: "#dc3545",
-          color: "white",
-          padding: "10px 16px",
-          fontSize: "16px",
-          borderRadius: "8px",
-          border: "none",
-          cursor: "pointer",
-          transition: "0.3s"
-        }}
-        onMouseEnter={(e) => e.target.style.background = "#c82333"}
-        onMouseLeave={(e) => e.target.style.background = "#dc3545"}
-      >
-        ❌ Cancelar
-      </button>
+        {NODE_TYPES.map((type) => (
+          <option key={type} value={type}>{type}</option>
+        ))}
+      </select>
+
+      <button onClick={() => onSave(newName, selectedType)}>Salvar</button>
+      <button onClick={onClose} style={{ marginLeft: "10px" }}>Cancelar</button>
     </div>
   );
 };
