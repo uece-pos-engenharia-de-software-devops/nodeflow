@@ -15,7 +15,7 @@ const EditNodeModal = ({ nodeId, nodeName, onClose, onSave, isNewNode = false })
         borderRadius: "12px",
         boxShadow: "0px 4px 8px rgba(0,0,0,0.2)",
         zIndex: 1000,
-        minWidth: "300px",
+        minWidth: "00px",
         textAlign: "center"
       }}
     >
@@ -27,7 +27,7 @@ const EditNodeModal = ({ nodeId, nodeName, onClose, onSave, isNewNode = false })
         value={newName}
         onChange={(e) => setNewName(e.target.value)}
         style={{
-          width: "100%",
+          width: "90%",
           padding: "10px",
           borderRadius: "8px",
           border: "1px solid #ccc",

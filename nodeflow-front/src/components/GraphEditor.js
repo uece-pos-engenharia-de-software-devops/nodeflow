@@ -11,7 +11,7 @@ import axios from "axios";
 import ContextMenu from "./ContextMenu";
 import EditNodeModal from "./EditNodeModal";
 
-const API_URL = "http://localhost:8080/api/nodes";
+const API_URL = "http://localhost:8080/api/v1/nodes";
 
 const GraphEditor = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
