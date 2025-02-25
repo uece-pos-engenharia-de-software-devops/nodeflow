@@ -36,6 +36,9 @@ git clone https://github.com/uece-pos-engenharia-de-software-devops/nodeflow.git
    ```sh
    docker-compose up -d
    ```
+> Existem dois arquivos docker-compose:
+> - Na raiz do repositório, há um docker-compose que utiliza as imagens do Docker Hub para subir o banco e a aplicação.
+> - Na raiz do backend, há um docker-compose para subir apenas o Neo4j, utilizado para testes   
 3. Inicie o backend:
    ```sh
    mvn spring-boot:run
