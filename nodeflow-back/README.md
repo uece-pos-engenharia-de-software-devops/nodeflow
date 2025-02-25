@@ -30,6 +30,11 @@ docker-compose up -d
 > Isso iniciará o banco de dados Neo4j em localhost:7687.
 > 
 
+Existem dois arquivos docker-compose:
+
+- Na raiz do repositório, há um docker-compose que utiliza as imagens do Docker Hub para subir o banco e a aplicação.
+- Na raiz do backend, há um docker-compose para subir apenas o Neo4j, utilizado para testes
+
 ### 3️⃣ **Configurar credenciais no `application.yml`**
 
 ```
