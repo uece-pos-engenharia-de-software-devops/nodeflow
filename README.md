@@ -16,6 +16,7 @@ O **NodeFlow** é um sistema completo para gerenciamento de nós e relacionament
 - **Docker**: Ferramenta utilizada para facilitar o deploy do banco de dados Neo4j. 🔗 [Site Oficial](https://www.docker.com/)  
 
 ### Frontend
+- **ReactFlow**: Biblioteca JavaScript para a criação e manipulação interativa fluxogramas no frontend. 🔗 [Site Oficial](https://reactflow.dev/)
 - **React**: Biblioteca JavaScript utilizada para a construção do frontend. 🔗 [Site Oficial](https://react.dev/)  
 - **Node.js**: Ambiente de execução JavaScript necessário para rodar o frontend. 🔗 [Site Oficial](https://nodejs.org/)  
 - **Webpack**: Empacotador de módulos usado para otimizar a performance do frontend. 🔗 [Site Oficial](https://webpack.js.org/)  
